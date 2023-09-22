@@ -44,7 +44,7 @@ if is_connected():
     print("[*] Trying to update the link file.")
     soup = subprocess.run(f"python3 soup.py \"{raspi_bullet_site_url}\" \"{raspi_h1_label}\"", shell=True, capture_output=True, text=True)
     if soup.returncode == 0:
-        print("[*] Soup script executed successfully.")
+        print("[*] Updated links successfully.")
     else:
         print(f"[!] Soup script failed with return code: {soup.returncode}")
         print(f"[*] STDERR: {soup.stderr}")

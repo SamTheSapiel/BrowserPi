@@ -49,7 +49,7 @@ class BrowserWindow(QMainWindow):
         self.scroll_timer_steps = scroll_timer_steps
         self.wait_after_scrolling = wait_after_scrolling
         self.links = read_text_file('links.txt')
-
+        self.loading = False
         # Setting a title
         self.setWindowTitle("Browser Pi")
 
@@ -90,7 +90,7 @@ class BrowserWindow(QMainWindow):
         self.webview = QWebEngineView()
         self.webview.setStyleSheet("border-radius: 1000px;")
         layout.addWidget(self.webview)
-
+        
         # Load the initial URL
         self.webview.loadFinished.connect(self.page_loaded)
         self.init_link()
@@ -107,79 +107,94 @@ class BrowserWindow(QMainWindow):
         self.clock_timer.timeout.connect(self.update_time)
         self.clock_timer.start(1000)
 
-        # Scroll timer
-        self.scroll_timer = QTimer()
-        self.scroll_timer.timeout.connect(self.scroll_page)
-        self.scroll_timer.start(self.scroll_timer_pms)  # Scroll every 1 millisecond
-        
-        self.scroll_step = self.scroll_timer_steps  # Adjust the scroll step as needed
-        self.scroll_direction = 1  # Initial scroll direction (1 for down, -1 for up)
-
         self.showFullScreen()
 
-
+    def setup_scrolling(self):
+        """Setup the timer and scrolling parameters."""
+        print("[Attempting to scroll]")
+        self.scroll_timer = QTimer()
+        self.loading = True
+        self.scroll_timer.timeout.connect(self.scroll_page)
+        self.scroll_timer.start(self.scroll_timer_pms)
+        self.scroll_step = self.scroll_timer_steps
+        self.scroll_direction = 1  # 1 for down, -1 for up
+        print("[Ended Set up]")
 
     def index_timer_func(self):
+        """Cycle through the paths list."""
         self.j = (self.j+1) % len(self.paths)
-        #print(self.j)
-
 
     def init_link(self):
+        """Initialize the first link if not done already."""
         if self.i == -1:
             print("[*] Initialized first page!")
             self.load_next_link()
 
-    # Function for loading the next page
-    def load_next_link(self):
+    def is_image_url(self, url):
+        """Check if the URL points to an image."""
+        return url.endswith(('.jpg', '.jpeg', '.png'))
 
-        # If the index i is smaller than the set, increase i and load the next page
+
+    def load_next_link(self):
+        """Load the next link."""
+        self.i += 1
         if self.i >= len(self.links):
             self.i = 0
-        self.load_page(self.links[self.i])
 
-        # Else, start again at zero
-
-    # Function for scrolling through the page
-    def scroll_page(self):
-        if self.is_page_loaded():
-            # Scroll down or up depending on the current scroll direction
-            scroll_position = self.webview.page().scrollPosition().y() + (self.scroll_step * self.scroll_direction)
-
-            # Scroll to the new position
-            self.webview.page().runJavaScript(f"window.scrollTo(0, {scroll_position});")
-
-            # Check if we reached the top or bottom of the page
-            contents_height = self.webview.page().contentsSize().height() - self.webview.height()
-
-            if scroll_position <= 0:
-                if self.webview.page().scrollPosition().y() == 0 and self.scroll_direction == -1 and self.is_page_loaded():
-                    self.scroll_direction = 1
-                    #print("[!] Sleeping for 3 seconds!")
-                    time.sleep(self.wait_after_scrolling)
-                    self.load_next_link()
-            elif scroll_position >= contents_height and self.is_page_loaded():
-                #print("[*] Changing the direction!")
-                self.scroll_direction = -1
-
+        next_url = self.links[self.i]
+        self.load_page(next_url)
 
     def load_page(self, url):
+        """Load a specified URL."""
         self.load_finished = False
+        print(f"[*] Load page {url}")
         self.webview.load(QUrl(url))
 
+    def delay_load(self, delay_milliseconds):
+        """Delay the loading of the next link."""
+        QTimer.singleShot(delay_milliseconds, self.load_next_link)
+
     def page_loaded(self, success):
-        if success:  # If the page failed to load
+        """Callback for when the page has loaded."""
+        print("Page Loaded")
+        if success:
+            current_url = self.webview.url().toString()
             self.load_finished = True
-            self.i += 1
+            if not self.is_image_url(current_url):
+                print("[*] Page successfully loaded! Setting up scrolling.")
+                self.setup_scrolling()  # Start scrolling for web pages
+            else:
+                print("[*] Image loaded! Waiting for 10 seconds.")
+                print("Delay 1")
+                self.delay_load(10000)  # Wait for 10 seconds for images
         else:
-            print(f"[!] Failed to load {self.links[self.i]}.")
-            self.i += 1
-            print("[!] Sleep 3 seconds.")
-            QTimer.singleShot(3000, self.load_next_link)
+            print(f"[!] Failed to load {self.links[self.i]}. Waiting for 3 seconds.")
+            print("[Delay 2]")
+            self.delay_load(3000)  # Wait for 3 seconds if page load failed
 
+   
+    def scroll_page(self):
+        """Scroll the page."""
+        if self.is_page_loaded():
+            scroll_position = self.webview.page().scrollPosition().y() + (self.scroll_step * self.scroll_direction)
+            self.webview.page().runJavaScript(f"window.scrollTo(0, {scroll_position});")
 
+            contents_height = self.webview.page().contentsSize().height() - self.webview.height()
+
+            if scroll_position <= 0 and self.scroll_direction == -1:
+                self.scroll_direction = 1  # Change direction to scroll down
+                if self.loading:
+                    print("[*] Reached the top. Loading next link in 3 seconds.")
+                    print("[*] Delay 3")
+                    self.loading = False
+                    self.scroll_timer.stop()
+                    self.delay_load(3000)  # Wait for 3 seconds then load next link
+            elif scroll_position >= contents_height:
+                self.scroll_direction = -1  # Change direction to scroll up
 
 
     def is_page_loaded(self):
+        """Check if the current page is loaded."""
         return self.load_finished
 
 
@@ -197,4 +212,3 @@ if __name__ == "__main__":
     window = BrowserWindow(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
     window.show()
     sys.exit(app.exec())
-
