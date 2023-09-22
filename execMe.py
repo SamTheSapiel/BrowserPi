@@ -12,7 +12,9 @@ scroll_timer_steps = 3
 raspi_h1_label = "Digital Signage"
 raspi_bullet_site_url = "https://typo3.uni-greifswald.de/?id=262261"
 shutdown_time = None  # if None, then it won't shut down, e.g. "18:00"
-
+room_names = "['SR 1', 'SR 2']"
+room_paths = "['plans/sr1.ics', 'plans/sr2.ics']"
+show_time_table = "False" # "True" or "False"
 
 def is_connected():
     try:
@@ -22,10 +24,13 @@ def is_connected():
         return False
 
 
-def start_browser(scroll_timer_ms, scroll_timer_steps, sleep_after_scrolling):
+def start_browser(scroll_timer_ms, scroll_timer_steps, sleep_after_scrolling, show_time_tables, room_names, room_paths):
     try:
-        result = subprocess.run(f"python3 small_browser.py {scroll_timer_ms} {scroll_timer_steps} {sleep_after_scrolling}", shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        print("[*] Browser Output:", result.stdout)
+        cmd = f'python3 browser.py {scroll_timer_ms} {scroll_timer_steps} {sleep_after_scrolling} "{show_time_table}" "{room_names}" "{room_paths}"'
+        print(cmd)
+        result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print("[*] Browser Output:", result.stdout, result.stderr)
+
     except subprocess.CalledProcessError as e:
         print("[!] Browser Error:", e)
 
@@ -52,7 +57,7 @@ else:
     print("[!] Failed to establish an internet connection.")
     print("[!] Failed to update the link file")
 
-browser_thread = threading.Thread(target=start_browser, args=(scroll_timer_ms, scroll_timer_steps, sleep_after_scrolling))
+browser_thread = threading.Thread(target=start_browser, args=(scroll_timer_ms, scroll_timer_steps, sleep_after_scrolling, show_time_table, room_names, room_paths))
 browser_thread.start()
 
 if shutdown_time:

@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=/home/pi/Dokumente/browserPi15Sep/execMe.py
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name=Mein Python Skript
-Comment=Beschreibung des Skripts
-
