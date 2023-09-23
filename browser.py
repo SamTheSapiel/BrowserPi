@@ -46,12 +46,19 @@ class BrowserWindow(QMainWindow):
     j = 0
     show_time_table = False
 
-    def __init__(self, scroll_timer_pms, scroll_timer_steps, wait_after_scrolling, show_time_table, rn, ps):
+    def __init__(self, scroll_timer_pms, scroll_timer_steps, wait_after_scrolling, show_time_table, rn, ps, time_table_change_ms, lower_left_font_color, lower_left_font_size, table_font_color, table_font_size, text_block_font_color, text_block_font_size):
         super(BrowserWindow, self).__init__()
         
         self.show_time_table = ast.literal_eval(show_time_table)
         if rn != "" or self.show_time_table:
             self.room_names = ast.literal_eval(rn)
+            self.time_table_change_ms = time_table_change_ms
+            self.lower_left_font_color = lower_left_font_color
+            self.lower_left_font_size = lower_left_font_size
+            self.table_font_color = table_font_color
+            self.table_font_size = table_font_size
+            self.text_block_font_color = text_block_font_color
+            self.text_block_font_size = text_block_font_size
         
         if ps != "" or self.show_time_table:
             self.paths = ast.literal_eval(ps)
@@ -145,7 +152,7 @@ class BrowserWindow(QMainWindow):
             self.index_timer = QTimer()
             self.index_timer.timeout.connect(self.index_timer_func)
             self.index_timer.timeout.connect(self.table_update)
-            self.index_timer.start(10000)
+            self.index_timer.start(self.time_table_change_ms)
 
 
         self.showFullScreen()
@@ -197,9 +204,9 @@ class BrowserWindow(QMainWindow):
     def create_text_block(self, text, position):
         block = QLabel(text)
         if position % 2 == 0:  # Even position
-            block.setStyleSheet("background-color: lightblue; color: white; font-size: 25px; padding: 10px; border-radius: 10px;")
+            block.setStyleSheet(f"background-color: lightblue; color: {self.text_block_font_color}; font-size: {self.text_block_font_size}; padding: 10px; border-radius: 10px;")
         else:  # Odd position
-            block.setStyleSheet("background-color: blue; color: white; font-size: 25px; padding: 10px; border-radius: 10px;")
+            block.setStyleSheet(f"background-color: blue; color: {self.text_block_font_color}; font-size: {self.text_block_font_size}; padding: 10px; border-radius: 10px;")
         block.setWordWrap(True)  # Enable text wrapping
         return block
 
@@ -218,7 +225,7 @@ class BrowserWindow(QMainWindow):
 
         label = QLabel(self.room_names[self.j])
         lower_left_layout.addWidget(label)
-        label.setStyleSheet("color: white; font-size: 20px;")
+        label.setStyleSheet(f"color: {self.lower_left_font_color}; font-size: {self.lower_left_font_size};")
 
         # Create the table and add it to the layout
         ics_file = self.paths[self.j % len(self.paths)]
@@ -236,7 +243,7 @@ class BrowserWindow(QMainWindow):
     def create_table(self, events):
         # Create the table widget
         table = QTableWidget()
-        table.setStyleSheet("color: white; font-size: 18px")
+        table.setStyleSheet(f"color: {self.table_font_color} ; font-size: {self.table_font_size}")
 
 # Text ins obere linke Kästchen hinzufügen
 
@@ -420,8 +427,13 @@ if __name__ == "__main__":
     os.environ["QT_IM_MODULE"] = ""
     print("[*] Starting the browser!")
     app = QApplication(sys.argv)
-    print()
-    window = BrowserWindow(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6])
-    #def __init__(self, scroll_timer_pms, scroll_timer_steps, wait_after_scrolling, show_time_table, rn, ps):
+    try:
+        window = BrowserWindow(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12], sys.argv[13])
+    #def __init__(self, scroll_timer_pms, scroll_timer_steps, wait_after_scrolling, show_time_table, rn, ps, time_table_change_ms, lower_left_font_color, lower_left_font_size, table_font_color, table_font_size, text_block_font_color, text_block_font_size):
+    except Exception as e:
+        print(f"[!!!] Caught an exception: {e}")
+        print("[*] Check your configurations in execMe.py!")
+        sys.exit(1)
+
     window.show()
     sys.exit(app.exec())
