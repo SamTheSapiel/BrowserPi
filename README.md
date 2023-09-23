@@ -1,5 +1,4 @@
-# BrowserPiGW
-
+# BrowserPi
 Digital Signage Browser Project
 Description
 
@@ -16,28 +15,38 @@ Project Structure
     README.md - The file you are currently reading.
 
 How execMe.py Works
+Variables for Customization:
 
-    Variables for Customization:
-        sleep_after_scrolling: Time to sleep after scrolling.
-        scroll_timer_ms: Timer for scrolling in milliseconds.
-        scroll_timer_steps: Number of scroll steps.
-        raspi_h1_label: Label used for web scraping.
-        raspi_bullet_site_url: URL of the website for web scraping.
-        shutdown_time: Time to shutdown the Raspberry Pi (Set to None to disable automatic shutdown).
-        room_names: Names of the rooms (should be an array).
-        room_paths: Paths for each room's plan.
-        show_time_table: Whether or not to show the timetable. Can be "True" or "False".
+    print_command_for_debugging: Boolean to control if commands are printed for debugging purposes.
+    sleep_after_scrolling: Time to sleep after scrolling.
+    scroll_timer_ms: Timer for scrolling in milliseconds.
+    scroll_timer_steps: Number of scroll steps.
+    raspi_h1_label: Label used for web scraping.
+    raspi_bullet_site_url: URL of the website for web scraping.
+    shutdown_time: Time to shutdown the Raspberry Pi (Set to None to disable automatic shutdown).
+    room_names: Names of the rooms (should be an array).
+    room_paths: Paths for each room's plan.
+    show_time_table: Whether or not to show the timetable. Can be "True" or "False".
+    timetable_change_ms: Time in milliseconds for when the timetable should change.
+    lower_left_font_color: Font color for the lower left text.
+    lower_left_font_size: Font size for the lower left text.
+    table_font_color: Font color for the table text.
+    table_font_size: Font size for the table text.
+    text_block_font_color: Font color for text blocks.
+    text_block_font_size: Font size for text blocks.
 
-    Functions:
-        is_connected(): Checks if there is an active internet connection.
-        start_browser(...): Initiates the browser with given parameters.
-        shutdown_rpi_at(stime): Shuts down the Raspberry Pi at a specified time.
+Functions:
 
-    Execution Flow:
-        The script checks for an internet connection.
-        If a connection exists, it tries to update the link file using the soup.py script.
-        The browser is then started in a separate thread using the given parameters.
-        If a shutdown_time is specified, another thread is started to shut down the Raspberry Pi at the given time.
+    is_connected(): Checks if there is an active internet connection.
+    start_browser(...): Initiates the browser with given parameters.
+    shutdown_rpi_at(stime): Shuts down the Raspberry Pi at a specified time.
+
+Execution Flow:
+
+    The script checks for an internet connection.
+    If a connection exists, it tries to update the link file using the soup.py script.
+    The browser is then started in a separate thread using the given parameters.
+    If a shutdown_time is specified, another thread is started to shut down the Raspberry Pi at the given time.
 
 Dependencies
 
@@ -52,10 +61,11 @@ The following libraries and modules are used in this project:
     icalendar: Used to process .ics calendar files.
     re: Regular expression operations.
 
-To install these dependencies, you can use pip
-
+To install these dependencies, you can use pip.
 Usage
 
 Make sure you've installed the necessary dependencies. Modify the variables in execMe.py as per your needs. Run the autostart.sh script to start the program.
 
 Note: Always remember to adhere to the terms of service of any website you are scraping.
+
+
